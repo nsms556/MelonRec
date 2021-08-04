@@ -1,30 +1,32 @@
 # -*- coding: utf-8 -*-
+import collections import Counter
+
 import pandas as pd
 import numpy as np
-import collections
+
 import torch
 
 
-def tags_ids_convert(json_data, tag2id_filepath, id2tag_filepath):
-    playlist_df = pd.DataFrame(json_data)
-    tags_list = playlist_df['tags'].to_list()
-    _id = 0
-    tags_dict = dict()
-    ids_dict = dict()
-    tags_set = set()
-    for tags in tags_list:
-        for tag in tags:
-            if tag not in tags_set:
-                tags_set.add(tag)
-                tags_dict[tag] = _id
-                ids_dict[_id] = tag
-                _id += 1
-    with open(tag2id_filepath, 'wb') as f:
-        np.save(f, tags_dict)
-        print('{} is created'.format(tag2id_filepath))
-    with open(id2tag_filepath, 'wb') as f:
-        np.save(f, ids_dict)
-        print('{} is created'.format(id2tag_filepath))
+def tags_encoding(json_data, tag2id_path, id2tag_path):
+    tag_lists = pd.DataFrame(json_data)['tags'].tolist()
+
+    tags = []
+    for tag_list in tag_lists :
+        tags.extend(tag_list)
+    tags = sorted(list(set(tags)))
+  
+    tag_to_id = {}
+    id_to_tag = {}
+    for idx, tag in enumerate(tags) :
+        tag_to_id[tag] = idx
+        id_to_tag[idx] = tag
+
+    with open(tag2id_path, 'wb') as f:
+        np.save(f, tag_to_id)
+        print('{} is created'.format(tag2id_path))
+    with open(id2tag_path, 'wb') as f:
+        np.save(f, id_to_tag)
+        print('{} is created'.format(id2tag_path))
     return True
 
 
@@ -64,25 +66,23 @@ def binary_tags2ids(_input, output, id2tag_dict, istrain=False):
     return list(map(to_dict_id, tags_idxes))
 
 
-def save_freq_song_id_dict(train, thr, default_file_path, model_postfix):
-    song_counter = collections.Counter()
-    for plylst in train:
-        song_counter.update(plylst['songs'])
+def song_filter_by_freq(train_data, freq_thread, song2id_path, id2song_path) :
+    song_counter = Counter()
+    for playlist in train_data :
+        song_counter.update(playlist['songs'])
+
+    song_counter = list(song_counter.items())
 
     selected_songs = []
-    song_counter = list(song_counter.items())
-    for k, v in song_counter:
-        if v > thr:
-            selected_songs.append(k)
+    for song, freq in song_counter :
+        if freq > freq_thread :
+            selected_songs.append(song)
 
-    print(f'{len(song_counter)} songs to {len(selected_songs)} songs')
+    freq_song_to_id = {song : _id for _id, song in enumerate(selected_songs)}
+    id_to_freq_song = {v:k for k, v in freq_song_to_id.items()}
 
-    freq_song2id = {song: _id for _id, song in enumerate(selected_songs)}
-    np.save(f'{default_file_path}/freq_song2id_thr{thr}_{model_postfix}', freq_song2id)
-    print(f'{default_file_path}/freq_song2id_thr{thr}_{model_postfix} is created')
-    id2freq_song = {v: k for k, v in freq_song2id.items()}
-    np.save(f'{default_file_path}/id2freq_song_thr{thr}_{model_postfix}', id2freq_song)
-    print(f'{default_file_path}/id2freq_song_thr{thr}_{model_postfix} is created')
+    np.save(song2id_path, freq_song_to_id)
+    np.save(id2song_path, id_to_freq_song)
 
 
 def genre_gn_all_preprocessing(genre_gn_all):
