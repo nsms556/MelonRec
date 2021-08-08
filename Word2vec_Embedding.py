@@ -65,7 +65,7 @@ class SP_Tokenizer :
 
         return tokenized_stc
 
-class string2vec():
+class string2vec :
     def __init__(self, train_data, size=200, window=5, min_count=2, workers=8, sg=1, hs=1):
         self.model = Word2Vec(train_data, size=size, window=window,
                               min_count=min_count, workers=workers, sg=sg, hs=hs)
