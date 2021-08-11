@@ -13,7 +13,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from utils.arena_util import load_json,  write_json
-from MelonDataset import *
+from utils.MelonDataset import *
 from utils.data_util import tags_encoding, song_filter_by_freq
 from utils.custom_utils import tmp_file_remove, mid_check
 from utils.static import is_cuda
@@ -120,7 +120,7 @@ class AutoEncoderHandler :
             torch.save(model, autoencoder_model_path)
 
             if args.mode == 0 & epoch % check_every == 0 :
-                mid_check(q_dataloader, model, tmp_result_path, answer_file_path, id2song_dict, id2tag_dict)
+                mid_check(q_dataloader, model, tmp_result_path, answer_file_path, id2song_dict, id2tag_dict, is_cuda, num_songs)
 
     def autoencoder_plylsts_embeddings(self, _model_file_path, _submit_type, genre=False, use_exist=True):
         if _submit_type == 'val':
@@ -217,6 +217,8 @@ class AutoEncoderHandler :
 
 def get_file_paths(args) :
     answer_file_path = None
+    val_file_path = None
+    test_file_path = None
 
     if args.mode == 0: 
         default_file_path = 'arena_data'
@@ -248,7 +250,7 @@ def get_file_paths(args) :
     id2song_file_path = f'{default_file_path}/id2freq_song_thr{args.freq_thr}_{model_postfix}.npy'
 
     autoencoder_model_path = 'model/autoencoder_{}_{}_{}_{}_{}_{}.pkl'. \
-        format(args.H, args.batch_size, args.learning_rate, args.dropout, args.freq_thr, model_postfix)
+        format(args.dimension, args.batch_size, args.learning_rate, args.dropout, args.freq_thr, model_postfix)
 
     return train_file_path, val_file_path, test_file_path, question_file_path, answer_file_path, \
         tag2id_file_path, id2tag_file_path, song2id_file_path, id2song_file_path, autoencoder_model_path
@@ -273,7 +275,7 @@ if __name__ == '__main__' :
     train_file_path, val_file_path, test_file_path, question_file_path, answer_file_path, \
         tag2id_file_path, id2tag_file_path, song2id_file_path, id2song_file_path, autoencoder_model_path = get_file_paths(args)
 
-    handler = AutoEncoderHandler()
+    handler = AutoEncoderHandler(args)
 
     if mode == 0 :
         default_file_path = 'arena_data'
@@ -307,3 +309,6 @@ if __name__ == '__main__' :
 
     np.save('{}/plylst_emb.npy'.format(default_file_path), plylst_emb)
     np.save('{}/plylst_emb_gnr.npy'.format(default_file_path), plylst_emb_gnr)
+
+    print('AutoEncoder Embedding Complete')
+    

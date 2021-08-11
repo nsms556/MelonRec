@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import collections import Counter
+from collections import Counter
 
 import pandas as pd
 import numpy as np

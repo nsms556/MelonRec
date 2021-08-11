@@ -1,6 +1,5 @@
 import sys
 import argparse
-from torch._C import R
 from tqdm import tqdm
 
 import numpy as np
@@ -10,7 +9,7 @@ import sentencepiece as spm
 from gensim.models import Word2Vec
 
 from utils.arena_util import load_json
-from MelonDataset import *
+from utils.MelonDataset import *
 
 
 class SP_Tokenizer :
@@ -37,13 +36,13 @@ class SP_Tokenizer :
 
         spm.SentencePieceTrainer.Train(cmd)
         print("tokenizer {} is generated".format(model_path))
-        self.set_model(model_path)
-
+        self.set_model(model_path + '.model')
+            
     def set_model(self, model_path) :
         try :
             self.sp.Load(model_path)
         except :
-            return False
+            raise RuntimeError("Failed to load {}".format(model_path + '.model'))
         
         return True
 
@@ -67,8 +66,8 @@ class SP_Tokenizer :
 
 class string2vec :
     def __init__(self, train_data, size=200, window=5, min_count=2, workers=8, sg=1, hs=1):
-        self.model = Word2Vec(train_data, size=size, window=window,
-                              min_count=min_count, workers=workers, sg=sg, hs=hs)
+        self.model = Word2Vec(size=size, window=window, min_count=min_count, workers=workers, sg=sg, hs=hs)
+        self.model.build_vocab(train_data)
 
     def set_model(self, model_fn):
         self.model = Word2Vec.load(model_fn)
@@ -97,7 +96,7 @@ class string2vec :
 
 class Word2VecHandler :
     def __init__(self, token_method, vocab_size, model_postfix) :
-        self.tokenizer = SP_Tokenizer()
+        self.tokenizer = SP_Tokenizer(token_method, vocab_size)
         self.w2v = None
         self.token_method = token_method
         self.vocab_size = vocab_size
@@ -159,7 +158,7 @@ class Word2VecHandler :
 
         return sentences
 
-    def train_word2vec(self, train_file_path, val_file_path, test_file_path, genre_file_path, _submit_type):
+    def train_word2vec(self, train_file_path, val_file_path, test_file_path, genre_file_path, tokenize_input_file_path, _submit_type):
         sentences = self.make_input4tokenizer(
             train_file_path, genre_file_path, tokenize_input_file_path, val_file_path, test_file_path)
 
@@ -171,8 +170,15 @@ class Word2VecHandler :
 
         tokenized_sentences = self.tokenizer.sentences_to_tokens(sentences)
 
-        w2v_name = 'model/w2v_{}_{}_{}.model'.format(method, vocab_size, _submit_type)
+        
+        w2v_name = 'model/w2v_{}_{}_{}.model'.format(self.token_method, self.vocab_size, self.model_postfix)
+        print("start train_w2v.... name : {}".format(w2v_name))
+        # Resample Only
+        #self.w2v = string2vec(tokenized_sentences, size=200, window=5, min_count=0, workers=8, sg=1, hs=1)
+        
         self.w2v = string2vec(tokenized_sentences, size=200, window=5, min_count=1, workers=8, sg=1, hs=1)
+        
+        print(self.w2v.model.wv)
         self.w2v.save_model(w2v_name)
 
     def get_plylsts_embeddings(self, train_data, question_data, _submit_type):
@@ -272,7 +278,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
 
-    vocab_size = 24000
+    # Resample Dataset Only
+    vocab_size = 13200
+    
+    # Original Dataset
+    #vocab_size = 24000
     method = 'bpe'
 
     if args.mode == 0:
@@ -289,7 +299,7 @@ if __name__ == '__main__':
         get_file_paths(method, vocab_size, model_postfix)
     
     handler = Word2VecHandler(method, vocab_size, model_postfix)
-    handler.train_word2vec(train_file_path, val_file_path, test_file_path, genre_file_path, model_postfix)
+    handler.train_word2vec(train_file_path, val_file_path, test_file_path, genre_file_path, tokenize_input_file_path, model_postfix)
 
     if model_postfix == 'local_val':
         train = load_json(train_file_path)
@@ -308,3 +318,5 @@ if __name__ == '__main__':
 
     np.save('{}/plylst_w2v_emb.npy'.format(default_file_path),
             plylst_title_tag_emb)
+
+    print('Word2Vec Embedding Complete')

@@ -3,9 +3,9 @@ from tqdm import tqdm
 
 import torch
 
-from arena_util import write_json
-from evaluate import ArenaEvaluator
-from data_util import binary_songs2ids, binary_tags2ids
+from utils.arena_util import write_json
+from utils.evaluate import ArenaEvaluator
+from utils.data_util import binary_songs2ids, binary_tags2ids
 
 
 def tmp_file_remove(file_path) :

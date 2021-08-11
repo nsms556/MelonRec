@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset
-from arena_util import load_json
-from data_util import genre_gn_all_preprocessing, genre_DicGenerator
+from utils.arena_util import load_json
+from utils.data_util import genre_gn_all_preprocessing, genre_DicGenerator
 import torch
 
 
