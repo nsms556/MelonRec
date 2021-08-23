@@ -9,7 +9,6 @@ import sentencepiece as spm
 from gensim.models import Word2Vec
 
 from utils.arena_util import load_json
-from utils.MelonDataset import *
 
 
 class SP_Tokenizer :
@@ -170,12 +169,9 @@ class Word2VecHandler :
 
         tokenized_sentences = self.tokenizer.sentences_to_tokens(sentences)
 
-        
         w2v_name = 'model/w2v_{}_{}_{}.model'.format(self.token_method, self.vocab_size, self.model_postfix)
         print("start train_w2v.... name : {}".format(w2v_name))
-        # Resample Only
-        #self.w2v = string2vec(tokenized_sentences, size=200, window=5, min_count=0, workers=8, sg=1, hs=1)
-        
+
         self.w2v = string2vec(tokenized_sentences, size=200, window=5, min_count=1, workers=8, sg=1, hs=1)
         
         print(self.w2v.model.wv)

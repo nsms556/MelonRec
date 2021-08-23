@@ -1,19 +1,17 @@
 import os
 import sys
 import argparse
-from collections import Counter
 from tqdm import tqdm
 
 import numpy as np
-import pandas as pd
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from utils.arena_util import load_json,  write_json
-from utils.MelonDataset import *
+from utils.arena_util import load_json
+from utils.MelonDataset import SongTagDataset, SongTagGenreDataset
 from utils.data_util import tags_encoding, song_filter_by_freq
 from utils.custom_utils import tmp_file_remove, mid_check
 from utils.static import is_cuda

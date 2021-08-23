@@ -3,9 +3,6 @@ from collections import defaultdict
 from tqdm import tqdm
 
 import numpy as np
-from numpy import dot
-from numpy.linalg import norm
-from sklearn.metrics.pairwise import cosine_similarity
 
 import torch
 import torch.nn as nn
