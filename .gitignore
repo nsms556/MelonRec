@@ -1,5 +1,4 @@
 .idea/
-res/
 model/
 arena_data/
 t_arena_data/
@@ -10,3 +9,5 @@ results/
 *.bat
 *.zip
 *.npy
+*.json
+original/

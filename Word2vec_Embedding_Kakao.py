@@ -222,12 +222,16 @@ class Word2VecHandler :
         if not sentences:
           sys.exit(1)
 
+        # spm #
         #tokenizer_name = 'model/tokenizer_{}_{}_{}'.format(self.token_method, self.vocab_size, self.model_postfix)
         #self.tokenizer.train(tokenize_input_file_path, tokenizer_name)
-
         #tokenized_sentences = self.tokenizer.sentences_to_tokens(sentences)
 
-        tokenized_sentences = self.tokenizer.sentences_to_tokens(sentences, self.tokenizer.get_all_tags(pd.read_json(train_file_path)))
+        # kakao filtered #
+        #tokenized_sentences = self.tokenizer.sentences_to_tokens(sentences, self.tokenizer.get_all_tags(pd.read_json(train_file_path)))
+
+        # kakao non-filtered #
+        tokenized_sentences = self.tokenizer.sentences_to_tokens(sentences)
 
         w2v_name = 'model/w2v_{}_{}_{}.model'.format(self.token_method, self.vocab_size, self.model_postfix)
         print("start train_w2v.... name : {}".format(w2v_name))
