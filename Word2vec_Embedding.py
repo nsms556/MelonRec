@@ -6,11 +6,68 @@ import numpy as np
 import pandas as pd
 
 import sentencepiece as spm
+from khaiii import KhaiiiApi
 from gensim.models import Word2Vec
 
 from utils.arena_util import load_json
 
+class Kakao_Tokenizer :
+    def __init__(self) -> None:
+        self.tokenizer = KhaiiiApi()
+        self.using_pos = ['NNG','SL','NNP','MAG','SN']  # 일반 명사, 외국어, 고유 명사, 일반 부사, 숫자
 
+    def re_sub(self, series: pd.Series) -> pd.Series:
+        series = series.str.replace(pat=r'[ㄱ-ㅎ]', repl=r'', regex=True)  # ㅋ 제거용
+        series = series.str.replace(pat=r'[^\w\s]', repl=r'', regex=True)  # 특수문자 제거
+        series = series.str.replace(pat=r'[ ]{2,}', repl=r' ', regex=True)  # 공백 제거
+        series = series.str.replace(pat=r'[\u3000]+', repl=r'', regex=True)  # u3000 제거
+        
+        return series
+
+    def flatten(self, list_of_list) :
+        flatten = [j for i in list_of_list for j in i]
+        
+        return flatten
+
+    def get_token(self, title: str) :
+        if len(title)== 0 or title== ' ':  # 제목이 공백인 경우 tokenizer에러 발생
+            return []
+
+        result = self.tokenizer.analyze(title)
+        result = [(morph.lex, morph.tag) for split in result for morph in split.morphs]  # (형태소, 품사) 튜플의 리스트
+        
+        return result
+
+    def get_all_tags(self, df: pd.DataFrame) :
+        tag_list = df['tags'].values.tolist()
+        tag_list = self.flatten(tag_list)
+        
+        return tag_list
+
+    def filter_by_exist_tag(self, tokens, exist_tags) :
+        token_tag = [self.get_token(x) for x in exist_tags]
+        token_itself = list(filter(lambda x: len(x)==1, token_tag))
+        token_itself = self.flatten(token_itself)
+        unique_tag = set(token_itself)
+        unique_word = [x[0] for x in unique_tag]
+
+        tokens = tokens.map(lambda x: list(filter(lambda x: x[0] in unique_word, x)))
+        tokens = tokens.map(lambda x : list(set(x)))
+
+        return tokens
+
+    def sentences_to_tokens(self, sentences, exist_tags=None) :
+        token_series = self.re_sub(pd.Series(sentences))
+        token_series = token_series.map(lambda x: self.get_token(x))
+        token_series = token_series.map(lambda x: list(filter(lambda x: x[1] in self.using_pos, x)))
+
+        if exist_tags is not None :
+            token_series = self.filter_by_exist_tag(token_series, exist_tags)
+
+        tokenized_stc = token_series.map(lambda x: [tag[0] for tag in x]).tolist()
+        
+        return tokenized_stc
+        
 class SP_Tokenizer :
     def __init__(self, model_type='bpe', vocab_size=24000) :
         self.model_type = model_type
@@ -95,7 +152,8 @@ class string2vec :
 
 class Word2VecHandler :
     def __init__(self, token_method, vocab_size, model_postfix) :
-        self.tokenizer = SP_Tokenizer(token_method, vocab_size)
+        #self.tokenizer = SP_Tokenizer(token_method, vocab_size)
+        self.tokenizer = Kakao_Tokenizer()
         self.w2v = None
         self.token_method = token_method
         self.vocab_size = vocab_size
@@ -164,10 +222,12 @@ class Word2VecHandler :
         if not sentences:
           sys.exit(1)
 
-        tokenizer_name = 'model/tokenizer_{}_{}_{}'.format(self.token_method, self.vocab_size, self.model_postfix)
-        self.tokenizer.train(tokenize_input_file_path, tokenizer_name)
+        #tokenizer_name = 'model/tokenizer_{}_{}_{}'.format(self.token_method, self.vocab_size, self.model_postfix)
+        #self.tokenizer.train(tokenize_input_file_path, tokenizer_name)
 
-        tokenized_sentences = self.tokenizer.sentences_to_tokens(sentences)
+        #tokenized_sentences = self.tokenizer.sentences_to_tokens(sentences)
+
+        tokenized_sentences = self.tokenizer.sentences_to_tokens(sentences, self.tokenizer.get_all_tags(pd.read_json(train_file_path)))
 
         w2v_name = 'model/w2v_{}_{}_{}.model'.format(self.token_method, self.vocab_size, self.model_postfix)
         print("start train_w2v.... name : {}".format(w2v_name))
