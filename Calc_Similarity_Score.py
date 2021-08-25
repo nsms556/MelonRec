@@ -82,20 +82,21 @@ def save_autoencoder_score(train, question, autoencoder_emb, score_type, include
         else:
             np.save(f'scores/local_val_scores_bias_{score_type}', score)
 
-def save_word2vec_score(train, question, word2vec_emb, score_type, submit_type) :
+def save_word2vec_score(train, question, word2vec_emb, score_type, vocab_size, submit_type) :
     score = calculate_score(train, question, word2vec_emb, score_type)
 
     if submit_type == 'local_val':
-        np.save(f'scores/local_val_scores_title_{score_type}_24000', score)
+        np.save(f'scores/local_val_scores_title_{score_type}_{vocab_size}', score)
     elif submit_type == 'val':
-        np.save(f'scores/val_scores_title_{score_type}_24000', score)
+        np.save(f'scores/val_scores_title_{score_type}_{vocab_size}', score)
     elif submit_type == 'test':
-        np.save(f'scores/test_scores_title_{score_type}_24000', score)
+        np.save(f'scores/test_scores_title_{score_type}_{vocab_size}', score)
 
 
 if __name__ == '__main__' :
     parser = argparse.ArgumentParser()
     parser.add_argument('-mode', type=int, help="local_val: 0, val: 1, test: 2", default=2)
+    parser.add_argument('-vocab_size', type=int, help="vocabulary_size", default=24000)
 
     args = parser.parse_args()
     print(args)
@@ -132,6 +133,6 @@ if __name__ == '__main__' :
 
     save_autoencoder_score(train, question, autoencoder_emb, 'cos', False, submit_type)
     save_autoencoder_score(train, question, autoencoder_emb_gnr, 'cos', True, submit_type)
-    save_word2vec_score(train, question, word2vec_emb, 'cos', submit_type)
+    save_word2vec_score(train, question, word2vec_emb, 'cos', args.vocab_size, submit_type)
 
     print('Calculate Similarity Score Complete')

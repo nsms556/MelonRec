@@ -261,7 +261,7 @@ if __name__ == '__main__' :
     parser.add_argument('-batch_size', type=int, help="batch size", default=256)
     parser.add_argument('-learning_rate', type=float, help="learning rate", default=0.0005)
     parser.add_argument('-dropout', type=float, help="dropout", default=0.2)
-    parser.add_argument('-num_workers', type=int, help="num workers", default=20)
+    parser.add_argument('-num_workers', type=int, help="num workers", default=4)
     parser.add_argument('-freq_thr', type=float, help="frequency threshold", default=2)
     parser.add_argument('-mode', type=int, help="local_val: 0, val: 1, test: 2", default=2)
 

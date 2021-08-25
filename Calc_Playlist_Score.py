@@ -138,6 +138,9 @@ def calc_scores(n_msp, n_mtp, freq_song, plylst_song_dic, plylst_tag_dic, q_song
     return plylst_song_scores, plylst_tag_scores
 
 def inference(song_mp, tag_mp, song_issue_dic, song_artist_dic, q, tag_song_C, song_tag_status, plylst_song_scores, plylst_tag_scores):
+    q_songs = q['songs']
+    q_tags = q['tags']
+
     # 4) song과 tag 둘 다 없거나 적은 경우 예측해서 채워넣기
     if song_tag_status == 0:
         # q_songs 새롭게 채워넣기 (원래는 song가 없지만 title_scores 기준 유사한 플레이리스트로부터 song 예측)
@@ -215,7 +218,7 @@ def inference(song_mp, tag_mp, song_issue_dic, song_artist_dic, q, tag_song_C, s
     return song_candidate, tag_candidate
 
 
-def Recommender(train, questions, n_msp, n_mtp, mode, sim_measure, song_meta, freq_song, save=False):
+def Recommender(train, questions, n_msp, n_mtp, mode, sim_measure, song_meta, freq_song, vocab_size, save=False):
     ## 최종 추천리스트
     rec_list = []
 
@@ -235,7 +238,7 @@ def Recommender(train, questions, n_msp, n_mtp, mode, sim_measure, song_meta, fr
     '''
     sim_scores = np.load(f'scores/{mode}_scores_bias_{sim_measure}.npy', allow_pickle=True).item()
     gnr_scores = np.load(f'scores/{mode}_scores_bias_{sim_measure}_gnr.npy', allow_pickle=True).item()
-    title_scores = np.load(f'scores/{mode}_scores_title_{sim_measure}_24000.npy', allow_pickle=True).item()
+    title_scores = np.load(f'scores/{mode}_scores_title_{sim_measure}_{vocab_size}.npy', allow_pickle=True).item()
 
     ## 3단계: 입력으로 들어온 questions 플레이리스트에 대해 추천
     for q in tqdm(questions):

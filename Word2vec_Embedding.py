@@ -268,8 +268,8 @@ def get_file_paths(method, vocab_size, model_postfix):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-mode', type=int, help="local_val: 0, val: 1, test: 2", default=2)
+    parser.add_argument('-mode', type=int, help="local_val: 0, val: 1, test: 2", default=2)
+    parser.add_argument('-vocab_size', type=int, help="vocabulary_size", default=24000)
 
     args = parser.parse_args()
     print(args)
@@ -278,7 +278,7 @@ if __name__ == '__main__':
     vocab_size = 13200
     
     # Original Dataset
-    #vocab_size = 24000
+    vocab_size = args.vocab_size
     method = 'bpe'
 
     if args.mode == 0:

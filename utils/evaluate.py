@@ -2,7 +2,7 @@
 import fire
 import numpy as np
 
-from arena_util import load_json
+from utils.arena_util import load_json
 
 
 class ArenaEvaluator:
